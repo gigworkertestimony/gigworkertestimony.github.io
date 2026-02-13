@@ -65,13 +65,15 @@ import {
 
 // --- Firebase Configuration & Initialization ---
 // TODO: REPLACE WITH YOUR OWN FIREBASE CONFIG FROM FIREBASE CONSOLE
+
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyD-wcroDBFFsUNgrT6uwQP1TT-1Jc5BtMU",
+  authDomain: "gigworkertestimony.firebaseapp.com",
+  projectId: "gigworkertestimony",
+  storageBucket: "gigworkertestimony.firebasestorage.app",
+  messagingSenderId: "1068276458074",
+  appId: "1:1068276458074:web:5a39c26578f0ac2ed6ae63",
+  measurementId: "G-DX6XVSBHRQ"
 };
 
 // Initialize Firebase
