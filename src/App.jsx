@@ -44,6 +44,7 @@ import {
   Building 
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
+import { getAnalytics } from "firebase/analytics";
 import { 
   getFirestore, 
   collection, 
@@ -64,7 +65,6 @@ import {
 } from 'firebase/auth';
 
 // --- Firebase Configuration & Initialization ---
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD-wcroDBFFsUNgrT6uwQP1TT-1Jc5BtMU",
   authDomain: "gigworkertestimony.firebaseapp.com",
@@ -75,11 +75,21 @@ const firebaseConfig = {
   measurementId: "G-DX6XVSBHRQ"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Initialize Firebase with Error Handling
+let app, auth, db, analytics;
+let initErrorMsg = null;
 
-const appId = 'safar-archive-v1'; // You can change this ID if needed
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  analytics = getAnalytics(app);
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
+  initErrorMsg = `Firebase Error: ${error.message}`;
+}
+
+const appId = 'safar-archive-v1'; 
 
 // --- Resource Categories Data Structure ---
 const RESOURCE_CATEGORIES = {
@@ -1311,12 +1321,27 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [grievances, setGrievances] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [initError, setInitError] = useState(initErrorMsg);
 
   useEffect(() => {
+    // If global init failed, set error
+    if (initErrorMsg) {
+        setInitError(initErrorMsg);
+        return;
+    }
+
     // Standard Firebase Auth Check
     const initAuth = async () => {
-        if (!auth) return;
-        await signInAnonymously(auth);
+        if (!auth) {
+            setInitError("Firebase Authentication is not initialized.");
+            return;
+        }
+        try {
+            await signInAnonymously(auth);
+        } catch (e) {
+            console.error("Auth failed:", e);
+            setInitError(`Authentication Error: ${e.message}`);
+        }
     };
     initAuth();
     
@@ -1329,17 +1354,22 @@ export default function App() {
   useEffect(() => {
     if (!user || !db) return;
     
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'grievances'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const feed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setGrievances(feed);
-        setLoadingFeed(false);
-      }, (error) => {
-        console.error("Error fetching grievances:", error);
-        setLoadingFeed(false);
-      }
-    );
-    return () => unsubscribe();
+    try {
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'grievances'), orderBy('timestamp', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const feed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setGrievances(feed);
+            setLoadingFeed(false);
+        }, (error) => {
+            console.error("Error fetching grievances:", error);
+            setInitError(`Database Error: ${error.message} (Did you create the database in Firebase Console?)`);
+            setLoadingFeed(false);
+        });
+        return () => unsubscribe();
+    } catch (e) {
+        console.error("Query failed", e);
+        setInitError("Failed to connect to database collection.");
+    }
   }, [user]);
 
   const handleApprove = async (id) => {
@@ -1432,6 +1462,13 @@ export default function App() {
           </div>
         </div>
       </nav>
+
+      {/* ERROR BANNER FOR DEBUGGING */}
+      {initError && (
+        <div className="bg-red-600 text-white p-4 text-center font-bold font-mono text-sm border-b-4 border-red-800">
+            ⚠ {initError}
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 py-12">
