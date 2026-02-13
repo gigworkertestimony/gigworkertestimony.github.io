@@ -64,8 +64,7 @@ import {
 } from 'firebase/auth';
 
 // --- Firebase Configuration & Initialization ---
-// TODO: REPLACE WITH YOUR OWN FIREBASE CONFIG FROM FIREBASE CONSOLE
-
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD-wcroDBFFsUNgrT6uwQP1TT-1Jc5BtMU",
   authDomain: "gigworkertestimony.firebaseapp.com",
@@ -77,15 +76,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-// We wrap this in a try-catch to prevent crashing if config is empty during setup
-let app, auth, db;
-try {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-} catch (error) {
-  console.error("Firebase initialization failed. Please check your config.", error);
-}
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 const appId = 'safar-archive-v1'; // You can change this ID if needed
 
