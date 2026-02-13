@@ -27,8 +27,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # Removing cache: 'npm' here can also help avoid lockfile errors on fresh runs
       - name: Install dependencies
+        # CRITICAL FIX: Changed from 'npm ci' to 'npm install'
+        # 'npm ci' fails if package-lock.json is missing.
+        # 'npm install' works with just package.json.
         run: npm install
       - name: Build
         run: npm run build
